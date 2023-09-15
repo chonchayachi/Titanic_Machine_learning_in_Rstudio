@@ -4,8 +4,9 @@ author: "Chonchayachiangsen"
 date: "2023-09-04"
 output:
   pdf_document: default
+  word_document: default
   html_document: default
-editor_options: 
+editor_options:
   chunk_output_type: inline
 ---
 
@@ -39,7 +40,7 @@ Sibling : brother, sister, stepbrother, stepsister
 
 Spouse :husband, wife (mistresses and fiancés were ignored)
 
--   **parch**: The dataset defines family relations in this way...
+-   **Parch**: The dataset defines family relations in this way...
 
 Some children travelled only with a nanny, therefore parch=0 for them.
 
@@ -49,7 +50,7 @@ Child : daughter, son, stepdaughter, stepson Some children travelled only with a
 
 -   **Embarked** :Port of Embarkation C = Cherbourg, Q = Queenstown, S = Southampton
 
--   **cabin** :Cabin number
+-   **Cabin** :Cabin number
 
 #### At first, I will summarize the data
 
@@ -444,9 +445,7 @@ ggplot(count_df, aes(x = Parch, y = Count, fill = factor(Survived))) +
 
 ##### Maximum: Q3 + 1.5\*IQR
 
-![](https://cdn1.byjus.com/wp-content/uploads/2020/10/Box-Plot-and-Whisker-Plot-1.png)
-
-pic credit: <https://byjus.com/maths/box-plot/>
+![](pictintanic/68747470733a2f2f63646e312e62796a75732e636f6d2f77702d636f6e74656e742f75706c6f6164732f323032302f31302f426f782d506c6f742d616e642d576869736b65722d506c6f742d312e706e67.png){width="492"}
 
 ```{r graph 3.1}
 library(ggplot2)
