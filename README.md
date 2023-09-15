@@ -224,4 +224,4 @@ The summary shows the some numeric variables can do a distribution such as Age, 
 
 <https://medium.com/analytics-vidhya/titanic-dataset-analysis-80-accuracy-9480cf3db538>
 
-<https://byjus.com/maths/box-plot/>
+<https://byjus.com/maths/box-plot/> \# TitanicHW \# TitanicHW \# TitanicHW \# TitanicHW \# Titanic_Machine_learning_in_Rstudio
