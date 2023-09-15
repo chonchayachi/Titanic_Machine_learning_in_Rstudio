@@ -140,7 +140,7 @@ titanic.trainsummary
 
 **From the table 1.5 above**, shows was not survived has the older age than who was survived (30.62 +- 14.17) and who was suvived has the younger than age about (28.34 +- 14.95).
 
-## **How do the features 'Age', 'Sex', 'Fare', 'Embarked','Sibsp' and 'Parch' affect the chance of a passenger's survival?**
+## **How do the features 'Age', 'Sex', 'Embarked','Sibsp' and 'Parch' affect the chance of a passenger's survival?**
 
 #### I will do the description by library(ggplot2) to explain in a bar graph to tell more about count of each category of the feature with information about the percentage or counts and box plot to tell about the range of distribution of the feature.
 
