@@ -65,8 +65,8 @@ library(gtsummary)
 titanic.train2 <- titanic.train %>% select(Age, Sex, Pclass, Embarked, Survived, SibSp, Parch)
 titanic.train2 %>% 
   tbl_summary(by = Survived) %>%
-  add_n() %>%
-  add_p()
+  add_n()
+
 ```
 
 **From the table 1.1 above**,the original Titanic datasets has been modified to include a subset of variables, including Age, Sex, Passenger Class, Port of Embarkation, Survival status, SibSp (Siblings/Spouses), and Parch (Parents/Children). The table is divided into two sections based on the "Survived" variable: one for passengers who survived ( = 1) and another for passengers who did not survive ( = 0) that shows in the count and percentages.
@@ -122,7 +122,7 @@ titanic.trainsummary <- titanic.train %>%
 titanic.trainsummary
 ```
 
-**From the table1.4 above** shows who was embarked from Cherbourg has the oldest age about (30.72 +- 14.80) and who was embarked from Queenstown the youngest age about (28.08 +- 16.91). Minimum of the age about 0.42 years old was embarked from Chourbourg and Maximum of the age about 80 years old was embarked from the Southampton. 2 passengers are not applicable.
+**From the table1.4 above** shows who was embarked from Cherbourg has the oldest age about (30.72 +- 14.80) and who was embarked from Queenstown the youngest age about (28.08 +- 16.91). Minimum of the age about 0.42 years old was embarked from Cherbourg and Maximum of the age about 80 years old was embarked from the Southampton. 2 passengers are not applicable.
 
 ```{r table 1.5}
 library(dplyr)
