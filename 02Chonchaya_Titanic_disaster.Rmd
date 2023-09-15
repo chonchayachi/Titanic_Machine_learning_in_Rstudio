@@ -258,7 +258,7 @@ ggplot(count_df, aes(x = Embarked, y = Count, fill = factor(Survived))) +
 
 ```
 
-**From graph 2.5 above,** Shows the percentage that who was embarked as Southampton was survived more than Cherbourg and Queenstown from Titanic sorted by Embarkation about 24.40% and most of them died about 28.03%
+**From graph 2.5 above,** Shows the percentage that who was embarked as Southampton was survived more than Cherbourg and Queenstown from Titanic sorted by Embarkation about 24.40% and most of them died about 48.03%
 
 #### In the Age variables, I will separate the age year in to a range.
 
