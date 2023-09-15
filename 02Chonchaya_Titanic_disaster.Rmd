@@ -1,0 +1,508 @@
+---
+title: "ChonchayaTitanic"
+author: "Chonchayachiangsen"
+date: "2023-09-04"
+output:
+  pdf_document: default
+  html_document: default
+editor_options: 
+  chunk_output_type: inline
+---
+
+# Titanic - Machine Learning from Disaster
+
+#### I will load and display the training dataset by library(readr)
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+titanic.train <- read_csv("train.csv")
+View(titanic.train)
+
+```
+
+## **Variable Notes**
+
+### So, I have the prediction variable in numeric and categorical variables that explained below...
+
+-   **Survival**: who was survived for 0 = No and 1 = Yes
+
+-   **Sex**: Gender Male and female
+
+-   **Pclass**: A proxy for socio-economic status (SES) 1st = Upper 2nd = Middle 3rd = Lower
+
+-   **Age**: Age is fractional if less than 1. If the age is estimated, is it in the form of xx.5
+
+-   **Sibsp**: The dataset defines family relations in this way...
+
+Sibling : brother, sister, stepbrother, stepsister
+
+Spouse :husband, wife (mistresses and fiancés were ignored)
+
+-   **parch**: The dataset defines family relations in this way...
+
+Some children travelled only with a nanny, therefore parch=0 for them.
+
+Parent : mother, father
+
+Child : daughter, son, stepdaughter, stepson Some children travelled only with a nanny, therefore parch=0 for them.
+
+-   **Embarked** :Port of Embarkation C = Cherbourg, Q = Queenstown, S = Southampton
+
+-   **cabin** :Cabin number
+
+#### At first, I will summarize the data
+
+```{r Summarise data}
+summary(titanic.train)
+```
+
+The summary shows the some numeric variables can do a distribution such as Age, Fare and some of category variables are characters such as Embarked, Sex, Cabin.Then some of the numeric variables are discrete data such as Pclass, Survived,Parch, Sibsp. Finally,some variables just show the information but it is not related to analyse the datasets are Passenger Id, Ticket and Fare.
+
+```{r table 1.1 creating summary tables and reports}
+library(gtsummary)
+titanic.train2 <- titanic.train %>% select(Age, Sex, Pclass, Embarked, Survived, SibSp, Parch)
+titanic.train2 %>% 
+  tbl_summary(by = Survived) %>%
+  add_n() %>%
+  add_p()
+```
+
+**From the table 1.1 above**,the original Titanic datasets has been modified to include a subset of variables, including Age, Sex, Passenger Class, Port of Embarkation, Survival status, SibSp (Siblings/Spouses), and Parch (Parents/Children). The table is divided into two sections based on the "Survived" variable: one for passengers who survived ( = 1) and another for passengers who did not survive ( = 0) that shows in the count and percentages.
+
+#### I will do the description by library(dplyr) to explain statistical analysis
+
+```{r table1.2 show the descriptive stat group by Pclass}
+library(dplyr)
+titanic.trainsummary <- titanic.train %>%
+  group_by(Pclass) %>%
+  summarize(
+    Observations = n(),
+    Min = min(Age, na.rm = TRUE),
+    Max = max(Age, na.rm = TRUE),
+    Mean = mean(Age, na.rm = TRUE),
+    Median = median(Age, na.rm = TRUE),
+    SD = sd(Age, na.rm = TRUE)
+  )
+titanic.trainsummary
+```
+
+**From the table1.2 above** shows The Passenger in the 1st class has the oldest age about (38.23 +- 14.80) and The Passenger in the 3rd class has the youngest age about (25.14 +- 12.49). Minimum of the age is in the 3rd class about 0.42 years old and Maximum of the age is in the 1st class about 80 years old.
+
+```{r table 1.3}
+library(dplyr)
+titanic.trainsummary <- titanic.train %>%
+  group_by(Sex) %>%
+  summarize(
+    Observations = n(),
+    Min = min(Age, na.rm = TRUE),
+    Max = max(Age, na.rm = TRUE),
+    Mean = mean(Age, na.rm = TRUE),
+    Median = median(Age, na.rm = TRUE),
+    SD = sd(Age, na.rm = TRUE)
+  )
+titanic.trainsummary
+```
+
+**From the table1.3 above** shows male are older age than female (30.72 +- 14.80) and female are younger age than male about (27.91 +- 14.11). Minimum and maximum of the age is male about 0.42 and 80 years old.
+
+```{r table 1.4}
+library(dplyr)
+titanic.trainsummary <- titanic.train %>%
+  group_by(Embarked) %>%
+  summarize(
+     Observations = n(),
+    Min = min(Age, na.rm = TRUE),
+    Max = max(Age, na.rm = TRUE),
+    Mean = mean(Age, na.rm = TRUE),
+    Median = median(Age, na.rm = TRUE),
+    SD = sd(Age, na.rm = TRUE)
+  )
+titanic.trainsummary
+```
+
+**From the table1.4 above** shows who was embarked from Cherbourg has the oldest age about (30.72 +- 14.80) and who was embarked from Queenstown the youngest age about (28.08 +- 16.91). Minimum of the age about 0.42 years old was embarked from Chourbourg and Maximum of the age about 80 years old was embarked from the Southampton. 2 passengers are not applicable.
+
+```{r table 1.5}
+library(dplyr)
+titanic.trainsummary <- titanic.train %>%
+  group_by(Survived) %>%
+  summarize(
+     Observations = n(),
+    Min = min(Age, na.rm = TRUE),
+    Max = max(Age, na.rm = TRUE),
+    Mean = mean(Age, na.rm = TRUE),
+    Median = median(Age, na.rm = TRUE),
+    SD = sd(Age, na.rm = TRUE)
+  )
+titanic.trainsummary
+```
+
+**From the table 1.5 above**, shows was not survived has the older age than who was survived (30.62 +- 14.17) and who was suvived has the younger than age about (28.34 +- 14.95).
+
+## **How do the features 'Age', 'Sex', 'Fare', 'Embarked','Sibsp' and 'Parch' affect the chance of a passenger's survival?**
+
+#### I will do the description by library(ggplot2) to explain in a bar graph to tell more about count of each category of the feature with information about the percentage or counts and box plot to tell about the range of distribution of the feature.
+
+```{r Describe Gender and Class}
+table(titanic.train$Sex, titanic.train$Pclass)
+prop.table(table(titanic.train$Sex, titanic.train$Pclass))*100
+```
+
+```{r graph 2.1 Describe Sex and Class}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Sex, titanic.train$Pclass))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Sex", "Pclass", "Count")
+ggplot(count_df, aes(x = Sex, y = Count, fill = factor(Pclass))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Passenger Distribution by Gender and Passenger class",
+       x = "Gender",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("1" = "blue", "2" = "green", "3" = "red"),
+                    labels = c("1st Class", "2nd Class", "3rd Class"),
+                    name = "Pclass")
+
+```
+
+**From graph 2.1 above,** Shows the male in the 3rd class are the most passenger in the titanic sorted by Gender and Class in percentage about 38.94% and female in the 2nd class is the least passenger about 8.52%
+
+```{r Describe gender and Embarked}
+table(titanic.train$Sex, titanic.train$Embarked)
+prop.table(table(titanic.train$Sex, titanic.train$Embarked))*100
+```
+
+```{r graph 2.2}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Sex, titanic.train$Embarked))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Sex", "Embarked", "Count")
+
+ggplot(count_df, aes(x = Sex, y = Count, fill = factor(Embarked))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Passenger Distribution by Gender and Embarktation",
+       x = "Gender",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("C" = "blue", "Q" = "green", "S" = "red"),
+                    labels = c("Cherbourg", "Queenstown", "Southampton"),
+                    name = "Embarked")
+
+```
+
+**From graph 2.2 above**, Shows the male who was embarked at Southampton are the most passenger in the titanic sorted by Gender and Embarked in percentage about 49.60%
+
+```{r Describe gender who will survived in Titanic}
+table(titanic.train$Sex, titanic.train$Survived)
+prop.table(table(titanic.train$Sex, titanic.train$Survived))*100
+```
+
+```{r graph 2.3 }
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Sex, titanic.train$Survived))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Sex", "Survived", "Count")
+
+ggplot(count_df, aes(x = Sex, y = Count, fill = factor(Survived))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Survival Distribution by Gender",
+       x = "Gender",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+
+```
+
+**From graph 2.3 above**, Shows the percentage that female was survived more than male from Titanic sorted by Gender about 26.15.%. Most of male died about 52.52% .
+
+```{r Describe Class who will survived in Titanic}
+table(titanic.train$Pclass, titanic.train$Survived)
+prop.table(table(titanic.train$Pclass, titanic.train$Survived))*100
+```
+
+```{r graph 2.4}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Pclass, titanic.train$Survived))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Pclass", "Survived", "Count")
+ggplot(count_df, aes(x = factor(Pclass), y = Count, fill = factor(Survived))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Survival Distribution by Passenger Class",
+       x = "Passenger Class",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+```
+
+**From graph 2.4 above**, Shows the percentage that Class 1 was survived more than Class2 and Class3 from Titanic sorted by Passenger class about 15.26% and the most of Class 3 died about 41.75%
+
+```{r Describe Embarked who will survived in Titanic}
+table(titanic.train$Embarked, titanic.train$Survived)
+prop.table(table(titanic.train$Embarked, titanic.train$Survived))*100
+```
+
+```{r graph 2.5}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Embarked, titanic.train$Survived))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Embarked", "Survived", "Count")
+ggplot(count_df, aes(x = Embarked, y = Count, fill = factor(Survived))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Survival Distribution by Port of Embarkation",
+       x = "Port of Embarkation",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+
+```
+
+**From graph 2.5 above,** Shows the percentage that who was embarked as Southampton was survived more than Cherbourg and Queenstown from Titanic sorted by Embarkation about 24.40% and most of them died about 28.03%
+
+#### In the Age variables, I will separate the age year in to a range.
+
+```{r Describe the Age and gender }
+titanic.train$Child[titanic.train$Age<=10] <- '0-10'
+titanic.train$Child[titanic.train$Age>10 & titanic.train$Age <=20] <- '11-20'
+titanic.train$Child[titanic.train$Age>20 & titanic.train$Age <=30] <- '21-30'
+titanic.train$Child[titanic.train$Age>30 & titanic.train$Age <=40] <- '31-40'
+titanic.train$Child[titanic.train$Age>40 & titanic.train$Age <=50] <- '41-50'
+titanic.train$Child[titanic.train$Age>50 & titanic.train$Age <=60] <- '51-60'
+titanic.train$Child[titanic.train$Age>60 & titanic.train$Age <=70] <- '61-70'
+titanic.train$Child[titanic.train$Age>70] <- '71-100'
+
+table(titanic.train$Child, titanic.train$Sex)
+prop.table(table(titanic.train$Child, titanic.train$Sex))*100
+```
+
+```{r graph 2.6}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Child, titanic.train$Sex))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Age", "Sex", "Count")
+
+ggplot(count_df, aes(x = Age, y = Count, fill = factor(Sex))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Passenger Distribution by Age and Gender",
+       x = "Age(year)",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("male" = "blue", "female" = "pink"),
+                    name = "Sex")
+```
+
+**From graph 2.6 above**, Shows the range age of the passenger in titanic sorted by Gender. The range about 21 -30 years old of male is the most passenger in titanic about 20.86% and Most of female 11.34%
+
+```{r Describe Age and Pclass in Titanic}
+titanic.train$Child[titanic.train$Age<=10] <- '0-10'
+titanic.train$Child[titanic.train$Age>10 & titanic.train$Age <=20] <- '11-20'
+titanic.train$Child[titanic.train$Age>20 & titanic.train$Age <=30] <- '21-30'
+titanic.train$Child[titanic.train$Age>30 & titanic.train$Age <=40] <- '31-40'
+titanic.train$Child[titanic.train$Age>40 & titanic.train$Age <=50] <- '41-50'
+titanic.train$Child[titanic.train$Age>50 & titanic.train$Age <=60] <- '51-60'
+titanic.train$Child[titanic.train$Age>60 & titanic.train$Age <=70] <- '61-70'
+titanic.train$Child[titanic.train$Age>70] <- '71-100'
+table(titanic.train$Child, titanic.train$Pclass)
+prop.table(table(titanic.train$Child, titanic.train$Pclass))*100
+```
+
+```{r graph2.7}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Child, titanic.train$Pclass))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Age", "Pclass", "Count")
+ggplot(count_df, aes(x = Age, y = Count, fill = factor(Pclass))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Passenger Distribution by Age and Passenger class",
+       x = "Age(year)",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("1" = "blue", "2" = "green", "3" = "red"),
+                    labels = c("1st Class", "2nd Class", "3rd Class"),
+                    name = "Pclass")
+```
+
+**From graph 2.7 above**, Shows the range age of the passenger in titanic sorted by Class. The range of not applicable in 3rd class is the most passenger in titanic about 18.06 %
+
+```{r Describe Age and Embaerked in Titanic}
+titanic.train$Child[titanic.train$Age<=10] <- '0-10'
+titanic.train$Child[titanic.train$Age>10 & titanic.train$Age <=20] <- '11-20'
+titanic.train$Child[titanic.train$Age>20 & titanic.train$Age <=30] <- '21-30'
+titanic.train$Child[titanic.train$Age>30 & titanic.train$Age <=40] <- '31-40'
+titanic.train$Child[titanic.train$Age>40 & titanic.train$Age <=50] <- '41-50'
+titanic.train$Child[titanic.train$Age>50 & titanic.train$Age <=60] <- '51-60'
+titanic.train$Child[titanic.train$Age>60 & titanic.train$Age <=70] <- '61-70'
+titanic.train$Child[titanic.train$Age>70] <- '71-100'
+table(titanic.train$Child, titanic.train$Embarked)
+prop.table(table(titanic.train$Child, titanic.train$Embarked))*100
+```
+
+```{r graph 2.8}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Child, titanic.train$Embarked))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Age", "Embarked", "Count")
+ggplot(count_df, aes(x = Age, y = Count, fill = factor(Embarked))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Passenger Distribution by Age and Embarktation",
+       x = "Age(year)",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("C" = "blue", "Q" = "green", "S" = "red"),
+                    labels = c("Cherbourg", "Queenstown", "Southampton"),
+                    name = "Embarked")
+
+```
+
+**From graph 2.8 above**, Shows the range age of the passenger in titanic sorted by Embarked. The range of 21-30 years old from Southampton is the most passenger in titanic about 25.56%
+
+```{r Describe Age and Survived in Titanic}
+titanic.train$Child[titanic.train$Age<=10] <- '0-10'
+titanic.train$Child[titanic.train$Age>10 & titanic.train$Age <=20] <- '11-20'
+titanic.train$Child[titanic.train$Age>20 & titanic.train$Age <=30] <- '21-30'
+titanic.train$Child[titanic.train$Age>30 & titanic.train$Age <=40] <- '31-40'
+titanic.train$Child[titanic.train$Age>40 & titanic.train$Age <=50] <- '41-50'
+titanic.train$Child[titanic.train$Age>50 & titanic.train$Age <=60] <- '51-60'
+titanic.train$Child[titanic.train$Age>60 & titanic.train$Age <=70] <- '61-70'
+titanic.train$Child[titanic.train$Age>70] <- '71-100'
+table(titanic.train$Child, titanic.train$Survived)
+prop.table(table(titanic.train$Child, titanic.train$Survived))*100
+```
+
+```{r graph 2.9}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Child, titanic.train$Survived))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Age", "Survived", "Count")
+ggplot(count_df, aes(x = Age, y = Count, fill = factor(Survived))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Survival Distribution by Age and Survival",
+       x = "Age(year)",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+
+```
+
+**From graph 2.9 above,** Shows the range age of the passenger in titanic sorted by who was survived. The range of 21-30 years old was survived the most about 11.76% and most of them died about 20.44%
+
+```{r Describe Siblings and spouse who was survived}
+table(titanic.train$SibSp, titanic.train$Survived)
+prop.table(table(titanic.train$SibSp, titanic.train$Survived))*100
+```
+
+```{r graph 2.10}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$SibSp, titanic.train$Survived))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("SibSp", "Survived", "Count")
+ggplot(count_df, aes(x = SibSp, y = Count, fill = factor(Survived))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Survival Distribution by family relations(Siblings and spouse) ",
+       x = "SibSp(Sibling and Spouse)",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+
+```
+
+**From graph 2.10 above**, Shows the family relations(Siblings and spouse) of the passenger in titanic sorted by who was survived. The passenger who was not have a family relations was survived the most about 23.56% and mostly of them died about 44.66%.
+
+```{r Describe Parents and children who was survived}
+table(titanic.train$Parch, titanic.train$Survived)
+prop.table(table(titanic.train$Parch, titanic.train$Survived))*100
+```
+
+```{r graph 2.11}
+library(ggplot2)
+count_table <- prop.table(table(titanic.train$Parch, titanic.train$Survived))*100
+count_df <- as.data.frame(count_table)
+colnames(count_df) <- c("Parch", "Survived", "Count")
+ggplot(count_df, aes(x = Parch, y = Count, fill = factor(Survived))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Survival Distribution by family relations(Parents and children) ",
+       x = "Parch",
+       y = "Count(%)") +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+```
+
+**From graph 2.11 above**, Shows the family relations(Parents and children) of the passenger in titanic sorted by who was survived. The passenger who was not have a family relations was survived the most about 26.15% and mostly of them died about 49.94%.
+
+#### The boxplot tell about the range of distribution of the feature shows a skewed distribution which is contained
+
+##### 1. Interquartile range (IQR): it is drawn as a rectangle between the first quartile (Q1) and the third quartile (Q3). The difference between the third quartile and first quartile known as the interquartile range = Q3-Q1
+
+##### 2. Median: which is the middle value when the data is ordered
+
+##### 3. Potential outliers: The extreme data is individual data points that fall beyond the whiskers of the boxplot marked to draw attention to their deviation from the central data distribution.
+
+##### 4. Line (or Whisker): represents the range of the data outside the IQR. A common approach is to extend them to a minimum and maximum of 1.5 times the IQR beyond Q1 and Q3
+
+##### Minimum: Q1 - 1.5\*IQR
+
+##### Maximum: Q3 + 1.5\*IQR
+
+![](https://cdn1.byjus.com/wp-content/uploads/2020/10/Box-Plot-and-Whisker-Plot-1.png)
+
+pic credit: <https://byjus.com/maths/box-plot/>
+
+```{r graph 3.1}
+library(ggplot2)
+ggplot(titanic.train, aes(x = factor(Survived), y = Age, fill = factor(Survived))) +
+  geom_boxplot() +
+  labs(title = "Box Plot of Age and Survival Status",
+       x = "Survived",
+       y = "Age")+
+  scale_x_discrete(labels = c("Not Survived", "Survived")) +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+```
+
+**From the graph3.1** above Shows the range of distribution between Age and who was survived.
+
+```{r graph 3.2}
+library(ggplot2)
+ggplot(data = titanic.train, aes(x = factor(Pclass), y = Age, fill = factor(Survived))) +
+  geom_boxplot() +
+  labs(title = "Box Plot of Age by Passenger Class and Survival Status",
+       x = "Passenger Class",
+       y = "Age") +
+  scale_x_discrete(labels = c("1st Class", "2nd Class", "3rd Class")) +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+```
+
+**From the graph3.2** above Shows the range of distribution between Age and and Passenger class who was survived.
+
+```{r graph 3.3}
+library(ggplot2)
+ggplot(data = titanic.train, aes(x = factor(Embarked), y = Age, fill = factor(Survived))) +
+  geom_boxplot() +
+  labs(title = "Box Plot of Age by Embarkation and Survival Status",
+       x = "Embarktation",
+       y = "Age") +
+  scale_x_discrete(labels = c("C", "S", "Q")) +
+  scale_fill_manual(values = c("0" = "red", "1" = "green"),
+                    labels = c("Not Survived", "Survived"),
+                    name = "Survived")
+```
+
+**From the graph3.3** above Shows the range of distribution between Age and Embarkation and who was survived.
+
+## References:
+
+<https://rstudio-pubs-static.s3.amazonaws.com/143316_106d643df86c4e4c8ae20e9775ab0ec7.html>
+
+<https://www.kaggle.com/competitions/titanic>
+
+<https://www.danieldsjoberg.com/gtsummary/>
+
+<https://www.r-bloggers.com/2016/02/titanic-machine-learning-from-disaster-part-1/>
+
+<https://medium.com/analytics-vidhya/titanic-dataset-analysis-80-accuracy-9480cf3db538>
+
+<https://byjus.com/maths/box-plot/>
